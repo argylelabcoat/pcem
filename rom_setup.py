@@ -200,11 +200,23 @@ class PCemROMOrganizer:
         """Clean up system/card name from table cell"""
         # Remove HTML tags
         text = re.sub(r'<[^>]+>', '', text)
-        # Remove special characters and extra whitespace
+        # Split on common delimiters and take first meaningful part
+        # This handles specs like "256KB VRAM" or "1MB - 128MB RAM"
+        if '<br/>' in text:
+            text = text.split('<br/>')[0]
+        # Remove references like [1] or [5]
+        text = re.sub(r'\[\d+\]|\[#[^\]]+\]', '', text)
+        # Take only the first part before specs (MHz, RAM, VRAM, etc)
+        for delimiter in ['MHz', 'RAM', 'VRAM', 'bit', '256KB', '512KB', '1MB', '2MB', '4MB', '8MB', '16MB']:
+            if delimiter in text:
+                text = text.split(delimiter)[0]
+                break
+        # Clean up whitespace
         text = text.strip()
-        # Remove common annotations
-        text = re.sub(r'\[\d+\]', '', text)
-        return text
+        # Remove trailing dashes and parentheses artifacts
+        text = re.sub(r'\s*[\-–]\s*$', '', text)
+        text = re.sub(r'\s*[()].*$', '', text)
+        return text if text else "Unknown"
 
     def show_menu(self) -> bool:
         """Show main menu and handle user input"""
