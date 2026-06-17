@@ -7,16 +7,17 @@ Parses README.md to extract ROM requirements and copies files from source ROM di
 import os
 import shutil
 import re
+import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
 
 class PCemROMOrganizer:
-    def __init__(self):
+    def __init__(self, rom_source: Path, rom_dest: Optional[Path] = None):
         self.script_dir = Path(__file__).parent
         self.readme_path = self.script_dir / "README.md"
-        self.rom_source = self.script_dir.parent / "PCem-ROMs"
-        self.rom_dest = self.script_dir / "roms"
+        self.rom_source = Path(rom_source).expanduser().resolve()
+        self.rom_dest = Path(rom_dest).expanduser().resolve() if rom_dest else self.script_dir / "roms"
 
         self.systems = {}  # cpu_type -> [(name, roms), ...]
         self.graphics_cards = {}  # card_type -> [(name, roms), ...]
@@ -416,13 +417,24 @@ class PCemROMOrganizer:
 
     def run(self):
         """Main entry point"""
-        print("Initializing ROM organizer...")
+        print("="*60)
+        print("PCem ROM Setup Tool")
+        print("="*60)
+        print(f"\nROM Source:      {self.rom_source}")
+        print(f"ROM Destination: {self.rom_dest}")
+        print("="*60)
+
+        print("\nInitializing ROM organizer...")
 
         # Verify ROM source directory exists
         if not self.rom_source.exists():
-            print(f"Warning: ROM source directory not found: {self.rom_source}")
-            print("You can still browse and select ROMs, but copying will fail.")
-            print("Make sure your ROMs are in: {self.rom_source}\n")
+            print(f"\n❌ Error: ROM source directory not found: {self.rom_source}")
+            print("Make sure the path exists and is correct.")
+            return
+
+        if not self.rom_source.is_dir():
+            print(f"\n❌ Error: ROM source is not a directory: {self.rom_source}")
+            return
 
         # Parse README
         if not self.parse_readme():
@@ -443,7 +455,32 @@ class PCemROMOrganizer:
 
 
 def main():
-    organizer = PCemROMOrganizer()
+    parser = argparse.ArgumentParser(
+        description='PCem ROM Setup Tool - Menu-driven ROM organizer',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python3 rom_setup.py /path/to/PCem-ROMs
+  python3 rom_setup.py ~/Downloads/PCem-ROMs -d ~/pcem/roms
+  python3 rom_setup.py ../../PCem-ROMs
+        """
+    )
+
+    parser.add_argument(
+        'rom_source',
+        help='Path to source ROM directory (e.g., ../../PCem-ROMs or ~/Downloads/PCem-ROMs)'
+    )
+
+    parser.add_argument(
+        '-d', '--destination',
+        help='Path to destination ROM directory (default: ./roms in script directory)',
+        default=None
+    )
+
+    args = parser.parse_args()
+
+    # Create organizer with provided paths
+    organizer = PCemROMOrganizer(args.rom_source, args.destination)
     organizer.run()
 
 

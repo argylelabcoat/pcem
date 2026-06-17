@@ -7,37 +7,70 @@
 ## Prerequisites
 
 - Python 3.6+
-- Properly organized ROM directory (`../../PCem-ROMs` relative to the script location)
+- A ROM directory with properly organized ROM files
 - The ROM files must be in the same directory structure as listed in the README
 
 ## Directory Structure
 
-The script expects the following structure:
+The ROM source directory should have the following structure:
 
 ```
-pcem/
-├── rom_setup.py
-├── roms/                    (destination - created automatically)
-└── ../
-    └── PCem-ROMs/           (source ROM files)
-        ├── ibmpc/
-        ├── ibmxt/
-        ├── tandy/
-        └── ... (other ROM directories)
+PCem-ROMs/              (your ROM source directory)
+├── ibmpc/
+│   ├── pc102782.bin
+│   ├── basicc11.f6
+│   └── ...
+├── ibmxt/
+├── tandy/
+├── deskpro/
+└── ... (other ROM directories)
 ```
+
+The destination directory (where ROMs are copied to) defaults to `./roms` in the script directory, but can be customized.
 
 ## Usage
 
-### Basic Usage
+### Command Line Arguments
 
-1. **Navigate to the PCem directory:**
+```bash
+python3 rom_setup.py <rom_source> [-d <rom_destination>]
+```
+
+**Arguments:**
+- `rom_source` (required): Path to your ROM directory
+  - Can be absolute: `/path/to/PCem-ROMs`
+  - Can be relative: `../../PCem-ROMs`
+  - Supports home expansion: `~/Downloads/PCem-ROMs`
+
+- `-d, --destination` (optional): Path where ROMs should be copied
+  - Default: `./roms` (in the script directory)
+  - Supports absolute and relative paths
+
+### Basic Usage Examples
+
+1. **Using relative path from pcem directory:**
    ```bash
-   cd /path/to/pcem
+   python3 rom_setup.py ../../PCem-ROMs
    ```
 
-2. **Run the script:**
+2. **Using absolute path:**
    ```bash
-   python3 rom_setup.py
+   python3 rom_setup.py /home/user/Downloads/PCem-ROMs
+   ```
+
+3. **Using home directory expansion:**
+   ```bash
+   python3 rom_setup.py ~/Downloads/PCem-ROMs
+   ```
+
+4. **Specifying custom destination:**
+   ```bash
+   python3 rom_setup.py ../../PCem-ROMs -d ~/emulator/roms
+   ```
+
+5. **Both custom source and destination:**
+   ```bash
+   python3 rom_setup.py /mnt/external/PCem-ROMs -d ./roms
    ```
 
 ### Menu Options
@@ -120,14 +153,27 @@ roms/
 └── ...
 ```
 
+## Getting Help
+
+To see all available options:
+```bash
+python3 rom_setup.py -h
+```
+
+This will display:
+- All command-line arguments
+- Default values
+- Usage examples
+
 ## Troubleshooting
 
-### "ROM source directory not found"
+### "Error: ROM source directory not found"
 
-This warning appears if the script can't find `../../PCem-ROMs`. Ensure:
-- The ROM files directory exists at the correct path
-- The directory is named exactly `PCem-ROMs`
-- You're running the script from the correct location
+This error appears if the script can't find your ROM directory. Ensure:
+- The path you specified actually exists
+- You used the correct path (absolute or relative)
+- If using a relative path, you're in the correct working directory
+- Check spelling and case sensitivity if on Linux/macOS
 
 ### "ROM file not found" during copy
 
