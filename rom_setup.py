@@ -100,50 +100,61 @@ class PCemROMOrganizer:
         entries = []
         lines = section_text.split('\n')
 
-        # Find the table header and data rows
-        table_start = None
+        skip_header = 0
         for i, line in enumerate(lines):
-            if '|' in line and 'ROM' in line:  # Header line
-                table_start = i
-                break
+            # Skip the first ### heading line and the header row
+            if line.strip().startswith('###'):
+                skip_header = i + 2  # Skip ### line and the header row
+                continue
 
-        if table_start is None:
-            return entries
+            if i <= skip_header:
+                continue
 
-        # Parse table rows
-        for i in range(table_start + 2, len(lines)):  # Skip header and separator
-            line = lines[i].strip()
+            line = line.strip()
 
-            # Stop at next section
-            if line.startswith('###') or line.startswith('##') or not line.startswith('|'):
-                break
+            # Skip separator lines and empty lines
+            if '---|' in line or not line or line.startswith('###'):
+                continue
 
-            # Parse table row
+            # Must contain pipes to be a table row
+            if '|' not in line:
+                continue
+
+            # Parse table row - split by pipe
             cells = [cell.strip() for cell in line.split('|')]
             cells = [cell for cell in cells if cell]  # Remove empty cells
 
-            if len(cells) >= 2:
-                # Usually: Year | Name/Description | ROM files
-                # For some: Int. | Hardware | Notes | ROM files
-                name_cell = None
-                roms_cell = None
+            if len(cells) < 3:  # Need at least 3 cells (Year, Name, ROMs)
+                continue
 
-                # Find cells that look like names (contain HTML bold tags or device names)
-                for j, cell in enumerate(cells):
-                    if '<b>' in cell or (j > 0 and ('/' in cells[-1] or '.bin' in cells[-1])):
-                        name_cell = j
-                        roms_cell = len(cells) - 1
-                        break
+            # The last cell should contain ROM files
+            last_cell = cells[-1]
 
-                if name_cell is not None and roms_cell is not None:
-                    name_text = cells[name_cell]
-                    roms_text = cells[roms_cell]
+            # Check if this row contains ROM files
+            if '/' not in last_cell and '.bin' not in last_cell and '.rom' not in last_cell:
+                continue
 
-                    name = self._clean_name(name_text)
-                    roms = self._extract_rom_files(roms_text)
+            # Extract ROM files from the last cell
+            roms = self._extract_rom_files(last_cell)
 
-                    if name and roms:
-                        entries.append((name, roms))
+            if not roms:
+                continue
+
+            # Find the system name - look for bold tags in cells
+            name = None
+            for cell in cells[1:-1]:  # Check middle cells (skip year and ROMs)
+                if '<b>' in cell:
+                    name = self._clean_name(cell)
+                    break
+
+            # If still no name, use second cell
+            if not name and len(cells) > 1:
+                name = self._clean_name(cells[1])
+
+            if name and roms:
+                # Avoid duplicates
+                if not any(entry[0] == name for entry in entries):
+                    entries.append((name, roms))
 
         return entries
 
