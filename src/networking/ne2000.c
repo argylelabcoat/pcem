@@ -32,7 +32,11 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __APPLE__
+#include <libslirp.h>
+#else
 #include <slirp/libslirp.h>
+#endif
 #include "queue.h"
 #ifdef _WIN32
 #include <winsock2.h>
