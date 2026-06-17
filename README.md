@@ -11,7 +11,7 @@ You can submit patches on our [forum](https://pcem-emulator.co.uk/phpBB3). Befor
 
 :exclamation: Note: <b>NO COPYRIGHTED ROM FILES ARE INCLUDED NOR WILL THEY BE. PLEASE DO NOT ASK FOR THEM.</b>
 
-## BSD and Linux supplement
+## Build Instructions
 
 You will need the following libraries and buildtools (and their dependencies):
 - SDL2
@@ -21,8 +21,25 @@ You will need the following libraries and buildtools (and their dependencies):
 - Ninja (Recommended, but you can use a Makefile generator if you prefer)
 - CLang Toolchain
 
-Open a terminal window, navigate to the PCem directory, create a build directory, then enter in that build directory: 
+### macOS
+
+First, install the required dependencies using Homebrew:
+```bash
+brew install sdl2 wxwidgets openal-soft cmake ninja libslirp
+```
+
+Then, open a terminal window, navigate to the PCem directory, create a build directory, and build:
+```bash
+mkdir build && cd build
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release ..
+ninja
+```
+
+Then run `./src/pcem` to start the emulator.
+
 ### Linux/BSD
+
+Open a terminal window, navigate to the PCem directory, create a build directory, then enter in that build directory: 
 ```
 cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release ..
 ninja
